@@ -52,7 +52,7 @@
 								<li><a href="${basePath}/role/index.shtml">角色列表</a></li>
 							</@shiro.hasPermission>
 							<@shiro.hasPermission name="/role/allocation.shtml">
-								<li><a href="${basePath}/role/allocation.shtml">角色分配（这是个JSP页面）</a></li>
+								<li><a href="${basePath}/role/allocation.shtml">角色分配</a></li>
 							</@shiro.hasPermission>
 							<@shiro.hasPermission name="/permission/index.shtml">
 								<li><a href="${basePath}/permission/index.shtml">权限列表</a></li>
@@ -62,8 +62,14 @@
 							</@shiro.hasPermission>
 						</ul>
 					</li>	
-				</@shiro.hasAnyRoles>    
-				<li>
+				</@shiro.hasAnyRoles>
+
+                  <li>
+                      <a class="dropdown-toggle" target="_blank" href="http://www.sojson.com/oneKey.html">
+                          一键下单<span class="collapsing"></span>
+                      </a>
+                  </li>
+				<#--<li>
 					<a class="dropdown-toggle" target="_blank" href="http://www.sojson.com/tag_shiro.html" target="_blank">
 						Shiro相关博客<span class="collapsing"></span>
 					</a>
@@ -77,7 +83,7 @@
 					<a class="dropdown-toggle" href="http://www.sojson.com/jc/shiro.html" target="_blank">
 						Shiro Demo 其他版本<span class="collapsing"></span>
 					</a>
-				</li>	          
+				</li>-->
 	          </ul>
 	           <ul class="nav navbar-nav  pull-right" >
 				<li class="dropdown ${(index==10)?string('active','')}" style="color:#fff;">
