@@ -47,6 +47,7 @@ public class SampleRealm extends AuthorizingRealm {
 
 	@Autowired
 	UUserService userService;
+
 	@Autowired
 	PermissionService permissionService;
 	@Autowired

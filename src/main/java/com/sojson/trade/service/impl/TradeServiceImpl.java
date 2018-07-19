@@ -1,9 +1,6 @@
 package com.sojson.trade.service.impl;
 
-import com.sojson.common.dao.UPermissionMapper;
-import com.sojson.common.dao.URolePermissionMapper;
-import com.sojson.common.dao.UUserMapper;
-import com.sojson.common.dao.UUserRoleMapper;
+import com.sojson.common.dao.*;
 import com.sojson.common.model.UPermission;
 import com.sojson.common.model.URolePermission;
 import com.sojson.common.utils.LoggerUtils;
@@ -13,6 +10,7 @@ import com.sojson.core.mybatis.page.Pagination;
 import com.sojson.core.shiro.token.manager.TokenManager;
 import com.sojson.permission.bo.UPermissionBo;
 import com.sojson.permission.service.PermissionService;
+import com.sojson.trade.service.TradeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-public class TradeServiceImpl extends BaseMybatisDao<UPermissionMapper> implements PermissionService {
+public class TradeServiceImpl extends BaseMybatisDao<UTradeMapper> implements TradeService {
 
 	@Autowired
 	UPermissionMapper permissionMapper;
