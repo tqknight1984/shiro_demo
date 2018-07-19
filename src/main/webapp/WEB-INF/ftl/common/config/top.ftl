@@ -64,8 +64,8 @@
 					</li>	
 				</@shiro.hasAnyRoles>
 
-                  <li>
-                      <a class="dropdown-toggle" target="_blank" href="http://www.sojson.com/oneKey.html">
+                  <li class="dropdown ${(index==4)?string('active','')}">
+                      <a class="dropdown-toggle" href="/trade/index.shtml">
                           一键下单<span class="collapsing"></span>
                       </a>
                   </li>

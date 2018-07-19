@@ -87,8 +87,6 @@
 			<tx:method name="init*" />
 
 
-
-
 			<tx:method name="*"  read-only="true"/>
 		</tx:attributes>
 	</tx:advice>
