@@ -119,16 +119,22 @@
 				<#--引入左侧菜单-->
 				<@_left.role 4/>
 				<div class="col-md-10">
-					<h2>权限分配</h2>
+					<h2>一键下单</h2>
 					<hr>
 					<form method="post" action="" id="formId" class="form-inline">
 						<div clss="well">
 					      <div class="form-group">
+                              <li>
 					        <input type="text" class="form-control" style="width: 300px;" value="${findContent?default('')}" 
-					        			name="findContent" id="findContent" placeholder="输入角色名称 / 角色类型">
+					        			name="findContent" id="findContent" placeholder="价格/price"></li>
+                              <li>
+							  <input type="text" class="form-control" style="width: 300px;" value="${findContent?default('')}"
+									 name="findContent" id="findContent" placeholder="数量/amount"></li>
+
 					      </div>
 					     <span class=""> <#--pull-right -->
-				         	<button type="submit" class="btn btn-primary">查询</button>
+				         	<button type="submit" class="btn btn-primary">挂买单</button>
+                             <button type="submit" class="btn btn-primary">挂卖单</button>
 				         	<@shiro.hasPermission name="/permission/clearPermissionByRoleIds.shtml">
 				         		<button type="button" id="deleteAll" class="btn  btn-danger">清空角色权限</button>
 				         	</@shiro.hasPermission>
@@ -139,21 +145,27 @@
 						<input type="hidden" id="selectRoleId">
 						<tr>
 							<th width="5%"><input type="checkbox" id="checkAll"/></th>
-							<th width="10%">角色名称</th>
-							<th width="10%">角色类型</th>
-							<th width="60%">拥有的权限</th>
+							<th width="20%">时间</th>
+							<th width="10%">平台</th>
+							<th width="10%">价格</th>
+                            <th width="10%">数量</th>
+                            <th width="10%">状态</th>
 							<th width="15%">操作</th>
+                            <th width="30%">操作</th>
 						</tr>
 						<#if page?exists && page.list?size gt 0 >
 							<#list page.list as it>
 								<tr>
 									<td><input value="${it.id}" check='box' type="checkbox" /></td>
-									<td>${it.name}</td>
-									<td>${it.type}</td>
-									<td permissionIds="${it.permissionIds?default('')}">${it.permissionNames?default('-')}</td>
+									<td>${it.create_time?string('yyyy-MM-dd hh:mm:ss')}</td>
+									<td>${it.coin}</td>
+                                    <td>${it.price}</td>
+                                    <td>${it.amount}</td>
+                                    <td>${it.status}</td>
+									<td permissionIds="${it.status?default('')}">${it.status?default('-')}</td>
 									<td>
 										<@shiro.hasPermission name="/permission/addPermission2Role.shtml">
-											<i class="glyphicon glyphicon-share-alt"></i><a href="javascript:selectPermissionById(${it.id});">选择权限</a>
+											<i class="glyphicon glyphicon-share-alt"></i><a href="javascript:selectPermissionById(${it.id});">撤单</a>
 										</@shiro.hasPermission>
 									</td>
 								</tr>

@@ -65,7 +65,7 @@
 				</@shiro.hasAnyRoles>
 
                   <li class="dropdown ${(index==4)?string('active','')}">
-                      <a class="dropdown-toggle" href="/trade/index.shtml">
+                      <a class="dropdown-toggle" href="${basePath}/trade/index.shtml">
                           一键下单<span class="collapsing"></span>
                       </a>
                   </li>

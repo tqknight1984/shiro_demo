@@ -34,10 +34,9 @@ public class TradeController extends BaseController {
 	public ModelAndView index(String findContent,ModelMap modelMap,Integer pageNo){
 		modelMap.put("findContent", findContent);
 		System.out.printf("----modelMap------->"+modelMap.toString());
-//		Pagination<UPermission> permissions = tradeService.findPage(modelMap,pageNo,pageSize);
-//		return new ModelAndView("trade/index","page",permissions);
-
-		return new ModelAndView("trade/index","page","111");
+		Pagination<UPermission> permissions = tradeService.findPage(modelMap,pageNo,pageSize);
+		System.out.printf("----tradeService.findPage------->"+permissions.getList().size());
+		return new ModelAndView("trade/index","page",permissions);
 	}
 
 
