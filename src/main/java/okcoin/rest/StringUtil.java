@@ -12,4 +12,7 @@ public class StringUtil {
 			return true;
 		return false; 
 	}
+
+
+
 }
