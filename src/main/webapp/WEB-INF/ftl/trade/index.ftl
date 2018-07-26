@@ -30,6 +30,18 @@
 					return deleteById(array);
 				});
 				</@shiro.hasPermission>
+
+				//取行情
+				<@shiro.hasPermission name="/trade/ticker.shtml">
+                $.post('${basePath}/trade/ticker.shtml',{symbol:'btc_usd'},function(result){
+                    if(result && result.status != 200){
+                        console.log('===200==='+result.message);
+                        $('#trade_ticker').val(result.message);
+                    }else{
+                        console.log('====500===')
+                    }
+                },'json');
+				</@shiro.hasPermission>
 			});
 			<@shiro.hasPermission name="/permission/clearPermissionByRoleIds.shtml">
 			<#--根据ID数组清空角色的权限-->
@@ -121,10 +133,11 @@
 				<div class="col-md-10">
 					<h2>一键下单</h2>
 					<hr>
+
 					<form method="post" action="" id="formId" class="form-inline">
 						<div clss="well">
 					      <div class="form-group">
-                              <li>
+                              <div class="error">当前行情：<span id="trade_ticker">...</span></div>
 					        <input type="text" class="form-control" style="width: 300px;" value="${findContent?default('')}" 
 					        			name="findContent" id="findContent" placeholder="价格/price"></li>
                               <li>
@@ -149,8 +162,8 @@
 							<th width="10%">平台</th>
 							<th width="10%">价格</th>
                             <th width="10%">数量</th>
-                            <th width="10%">状态</th>
-							<th width="15%">操作</th>
+                            <th width="10%">状态123</th>
+							<th width="15%">状态223</th>
                             <th width="30%">操作</th>
 						</tr>
 						<#if page?exists && page.list?size gt 0 >
