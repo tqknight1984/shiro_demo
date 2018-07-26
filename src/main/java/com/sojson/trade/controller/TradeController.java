@@ -50,7 +50,7 @@ public class TradeController extends BaseController {
 	@RequestMapping(value="ticker",method={RequestMethod.POST,RequestMethod.GET})
 	@ResponseBody
 	public Map<String,Object> ticker(String symbol){
-		System.out.println("----ticker------->"+symbol);
+		System.out.println("----ticker--123----->"+symbol);
 		try {
 			String res = StockClient.ticker();
 			resultMap.put("status", 200);
