@@ -16,6 +16,8 @@
 			so.init(function(){
 				//初始化全选。
 				so.checkBoxInit('#checkAll','[check=box]');
+				so.checkBoxInit('#checkAll_accounts','[check=box_account]');
+				// $('#checkAll_accounts').click();
 				<@shiro.hasPermission name="/permission/clearPermissionByRoleIds.shtml">
 				//全选
 				so.id('deleteAll').on('click',function(){
@@ -34,15 +36,58 @@
 				//取行情
 				<@shiro.hasPermission name="/trade/ticker.shtml">
                 $.post('${basePath}/trade/ticker.shtml',{symbol:'btc_usd'},function(result){
-                    if(result && result.status != 200){
+                    if(result && result.status == 200){
                         console.log('===200==='+result.message);
-                        $('#trade_ticker').val(result.message);
+                        $('#trade_ticker').html(result.message.ticker.last);
+                        $('#trade_curr_tm').html(result.message.curr_tm);
+
                     }else{
                         console.log('====500===')
                     }
                 },'json');
 				</@shiro.hasPermission>
 			});
+
+            //下单
+			<@shiro.hasPermission name="/trade/ticker.shtml">
+			function trd_post(trd_type){
+
+                var trd_symbol = $('#trd_symbol').val(),
+                trd_price  = $('#trd_price').val();
+                trd_amount  = $('#trd_amount').val();
+                if($.trim(trd_price) == ''){
+                    return layer.msg('价格不能为空。');
+                }
+                if($.trim(trd_amount) == ''){
+                    return layer.msg('数量不能为空。');
+                }
+
+                var trd_accounts = "";
+                var checkeds = $('[check=box_account]:checked');
+                console.log(checkeds.length);
+                $.each(checkeds,function(){
+                    //console.log(this.value);
+                    trd_accounts = trd_accounts+(this.value+",")
+                });
+
+                <#--loding-->
+                var load = layer.load();
+                $.post('${basePath}/trade/trade.shtml',
+						{trd_symbol:trd_symbol, trd_type:trd_type,trd_price:trd_price,trd_amount:trd_amount,trd_accounts:trd_accounts},
+						function(result){
+                    layer.close(load);
+                    if(result && result.status != 200){
+                        return layer.msg(result.message,so.default),!1;
+                    }
+                    layer.msg('下单成功。');
+                    setTimeout(function(){
+                        $('#formId').submit();
+                    },1000);
+                },'json');
+            }
+			</@shiro.hasPermission>
+
+
 			<@shiro.hasPermission name="/permission/clearPermissionByRoleIds.shtml">
 			<#--根据ID数组清空角色的权限-->
 			function deleteById(ids){
@@ -120,6 +165,11 @@
 					}
 				},'json');
 			}
+
+			function test(){
+				console.log("------>")
+            }
+
 			</@shiro.hasPermission>
 		</script>
 	</head>
@@ -128,31 +178,56 @@
 		<@_top.top 4/>
 		<div class="container" style="padding-bottom: 15px;min-height: 300px; margin-top: 40px;">
 			<div class="row">
+
 				<#--引入左侧菜单-->
-				<@_left.role 4/>
+				<#--<@_left.role 4/>-->
+
+			<div id="one" class="col-md-2">
+                <div class="btn-group-vertical" role="group" aria-label="...">
+                    <button type="button" class="btn btn-default">OKEX</button>
+                    <button type="button" class="btn btn-default">火币</button>
+                    <button type="button" class="btn btn-default">ZB</button>
+                </div>
+            </div>
+
 				<div class="col-md-10">
-					<h2>一键下单</h2>
-					<hr>
+					<div clss="well">
 
-					<form method="post" action="" id="formId" class="form-inline">
-						<div clss="well">
-					      <div class="form-group">
-                              <div class="error">当前行情：<span id="trade_ticker">...</span></div>
-					        <input type="text" class="form-control" style="width: 300px;" value="${findContent?default('')}" 
-					        			name="findContent" id="findContent" placeholder="价格/price"></li>
-                              <li>
-							  <input type="text" class="form-control" style="width: 300px;" value="${findContent?default('')}"
-									 name="findContent" id="findContent" placeholder="数量/amount"></li>
+					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('btc_usd')">BTC/USDT</button>
+					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eth_usd')">ETH/USDT</button>
+					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eos_usd')">EOS/USDT</button>
 
-					      </div>
-					     <span class=""> <#--pull-right -->
-				         	<button type="submit" class="btn btn-primary">挂买单</button>
-                             <button type="submit" class="btn btn-primary">挂卖单</button>
-				         	<@shiro.hasPermission name="/permission/clearPermissionByRoleIds.shtml">
-				         		<button type="button" id="deleteAll" class="btn  btn-danger">清空角色权限</button>
-				         	</@shiro.hasPermission>
-				         </span>    
-				        </div>
+					  <table class="table table-bordered">
+						  <tr>
+							  <th width="7%"><input type="checkbox" name="trd_accounts" id="checkAll_accounts"/>全选</th>
+							  <td><input value="tian" check='box_account' type="checkbox" />账户tian</td>
+							  <td><input value="acc_2" check='box_account' type="checkbox" />账户A</td>
+							  <td><input value="acc_3" check='box_account' type="checkbox" />账户A</td>
+							  <td><input value="acc_4" check='box_account' type="checkbox" />账户A</td>
+						  </tr>
+					  </table>
+
+						  <ul class="list-group">
+							  <li class="list-group-item">更新时间：<span  id="trade_curr_tm">...</span></li>
+							  <li class="list-group-item">最新成交价：<span  id="trade_ticker">...</span></li>
+							  <li class="list-group-item">价格：
+								  <input type="text" name="trd_price" id="trd_price" placeholder="价格/price">
+							  </li>
+							  <li class="list-group-item">数量：
+								  <input type="text" name="trd_amount" id="trd_amount" placeholder="数量/amount">
+							  </li>
+							  <li class="list-group-item">。。。。。。。。。。</li>
+						  </ul>
+
+
+						<input type="text" name="trd_symbol" id="trd_symbol" value="">
+						<input type="text" name="trd_type" id="trd_type" value="buy">
+					 <span class=""> <#--pull-right -->
+						<button type="submit" class="btn btn-primary" onclick="trd_post('buy')">挂买单</button>
+						 <button type="submit" class="btn btn-primary" onclick="trd_post('sell')">挂卖单</button>
+					 </span>
+					</div>
+
 					<hr>
 					<table class="table table-bordered">
 						<input type="hidden" id="selectRoleId">
@@ -194,7 +269,7 @@
 							${page.pageHtml}
 						</div>
 					</#if>
-					</form>
+
 				</div>
 			</div><#--/row-->
 			

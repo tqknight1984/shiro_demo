@@ -346,6 +346,20 @@ public class DateUtil {
     }
 
     /**
+     *   yyyy-MM-dd
+     * @return
+     */
+    public static String getCurrentTimeString() {
+        return dateToString(getCurrentDateTime(), DATETIME_PATTERN);
+    }
+
+    public static String getTimeString(long tm) {
+        Date date = new Date(tm);
+        return dateToString(date, DATETIME_PATTERN);
+    }
+
+
+    /**
      * 返回固定格式的当前时间
      *   yyyy-MM-dd hh:mm:ss
      * @param date
