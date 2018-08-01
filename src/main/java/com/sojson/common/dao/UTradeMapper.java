@@ -1,25 +1,27 @@
 package com.sojson.common.dao;
 
-import com.sojson.common.model.UPermission;
-import com.sojson.permission.bo.UPermissionBo;
+import com.sojson.common.model.UTrade;
+import org.apache.ibatis.annotations.*;
+//import com.sojson.permission.bo.UTradeBo;
 
 import java.util.List;
-import java.util.Set;
 
 public interface UTradeMapper {
-    int deleteByPrimaryKey(Long id);
+//    int deleteByPrimaryKey(Long id);
+//
+    @Insert("insert into u_trade (symbol, order_id, price, amount, create_tm, account, site, type, status) values (#{symbol},#{order_id},#{price},#{amount},#{create_tm},#{account},#{site},#{type},#{status})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int insert(UTrade record);
 
-    int insert(UPermission record);
 
-    int insertSelective(UPermission record);
+//        @Select("select * from u_trade where status=#{status} limit 100")
+//    @Results({ @Result(id = true, column = "id", property = "id"),
+//            @Result(column = "username", property = "user_name"),
+//            @Result(column = "city", property = "city") })
+//    @UpdateProvider(type = SqlProvider.class, method = "selectByStatus")
+    @SelectProvider(type = SqlProvider.class, method = "selectByField")
+    List<UTrade> selectByField(UTrade trade);
 
-    UPermission selectByPrimaryKey(Long id);
-
-    int updateByPrimaryKeySelective(UPermission record);
-
-    int updateByPrimaryKey(UPermission record);
-
-	List<UPermissionBo> selectPermissionById(Long id);
-	//根据用户ID获取权限的Set集合
-	Set<String> findPermissionByUserId(Long id);
 }
+
+

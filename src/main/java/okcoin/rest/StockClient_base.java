@@ -30,7 +30,7 @@ public abstract class StockClient_base {
 	protected  IStockRestApi stockPost;
 
 	public void test() throws IOException, HttpException {
-		System.out.printf("----->"+this.name);
+		System.out.printf("----->"+this.ticker());
 	}
 
 	public String getName() throws IOException, HttpException {
@@ -39,7 +39,7 @@ public abstract class StockClient_base {
 
 	//现货行情
 	public String ticker() throws IOException, HttpException {
-		String res  = stockGet.ticker("btc_usd");
+		String res  = stockGet.ticker("btc_usdt");
 		return res;
 	}
 
@@ -57,13 +57,13 @@ public abstract class StockClient_base {
 
 	//现货下单交易
 	public String trade(String symbol, String type, String price, String amount) throws IOException, HttpException {
-		String res  = stockPost.trade("btc_usd", "buy", "50", "1.02");
+		String res  = stockPost.trade(symbol, type, price, amount);
 		return res;
 	}
 
 	//现货撤销订单
-	public String cancel_order(String order_id) throws IOException, HttpException {
-		String res  =  stockPost.cancel_order("btc_usd", order_id);
+	public String cancel_order(String symbol, String order_id) throws IOException, HttpException {
+		String res  =  stockPost.cancel_order(symbol, order_id);
 		return res;
 	}
 

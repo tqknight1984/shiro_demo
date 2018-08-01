@@ -2,7 +2,7 @@
 <html lang="zh-cn">
 	<head>
 		<meta charset="utf-8" />
-		<title>一键下单</title>
+		<title>币币交易</title>
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 		<link   rel="icon" href="${basePath}/favicon.ico" type="image/x-icon" />
 		<link   rel="shortcut icon" href="${basePath}/favicon.ico" />
@@ -15,8 +15,7 @@
 		<script >
 			so.init(function(){
 				//初始化全选。
-				so.checkBoxInit('#checkAll','[check=box]');
-				so.checkBoxInit('#checkAll_accounts','[check=box_account]');
+				so.checkBoxInit('#checkAll_accounts','[check=account_box]');
 				// $('#checkAll_accounts').click();
 				<@shiro.hasPermission name="/permission/clearPermissionByRoleIds.shtml">
 				//全选
@@ -35,17 +34,30 @@
 
 				//取行情
 				<@shiro.hasPermission name="/trade/ticker.shtml">
-                $.post('${basePath}/trade/ticker.shtml',{symbol:'btc_usd'},function(result){
-                    if(result && result.status == 200){
-                        console.log('===200==='+result.message);
-                        $('#trade_ticker').html(result.message.ticker.last);
-                        $('#trade_curr_tm').html(result.message.curr_tm);
-
-                    }else{
-                        console.log('====500===')
-                    }
-                },'json');
+				function init_ticker(){
+					$.post('${basePath}/trade/ticker.shtml',{symbol:'btc_usd'},function(result){
+						if(result && result.status == 200){
+							console.log('===200==='+result.message);
+							$('#trade_ticker').html(result.message.ticker.last);
+							$('#trade_curr_tm').html(result.message.curr_tm);
+							// setTimeout(init_ticker,1000);
+						}else{
+							console.log('====500===')
+						}
+					},'json');
+                }
+                init_ticker();
 				</@shiro.hasPermission>
+
+				//默认全部选中
+				var check_ls = $('[check=account_box]');
+                check_ls.each(function(){
+                    this.checked="checked";
+                });
+
+                //默认btc_usd
+				$('#btc_usd_btn').click()
+
 			});
 
             //下单
@@ -63,30 +75,55 @@
                 }
 
                 var trd_accounts = "";
-                var checkeds = $('[check=box_account]:checked');
+                var checkeds = $('[check=account_box]:checked');
                 console.log(checkeds.length);
                 $.each(checkeds,function(){
                     //console.log(this.value);
                     trd_accounts = trd_accounts+(this.value+",")
                 });
+                if($.trim(trd_accounts) == '' || trd_accounts.length < 1 ){
+                    return layer.msg('请选中操作账号');
+                }
 
-                <#--loding-->
-                var load = layer.load();
-                $.post('${basePath}/trade/trade.shtml',
-						{trd_symbol:trd_symbol, trd_type:trd_type,trd_price:trd_price,trd_amount:trd_amount,trd_accounts:trd_accounts},
-						function(result){
-                    layer.close(load);
-                    if(result && result.status != 200){
-                        return layer.msg(result.message,so.default),!1;
-                    }
-                    layer.msg('下单成功。');
-                    setTimeout(function(){
-                        $('#formId').submit();
-                    },1000);
-                },'json');
+                var index = layer.confirm(trd_symbol+ "确定下单？"+ trd_type +" 价格："+ trd_price +" 数量："+trd_amount,function(){
+                	var load = layer.load();
+					$.post('${basePath}/trade/trade.shtml',
+							{trd_symbol:trd_symbol, trd_type:trd_type,trd_price:trd_price,trd_amount:trd_amount,trd_accounts:trd_accounts},
+							function(result){
+						layer.close(load);
+						if(result && result.status != 200){
+							return layer.msg(result.message,so.default),!1;
+						}
+						//添加行
+						var res_ls = result.message;
+						$.each(res_ls, function(k, trd){
+						    // console.log("---下单成功----22--->"+trd.order_id)
+							var tr_html=[];
+                           	tr_html.push('<td>'+trd.create_tm+'</td>');
+                           	tr_html.push('<td>'+trd.site+'</td>');
+                           	tr_html.push('<td>'+trd.account+'</td>');
+                           	tr_html.push('<td>'+trd.type+'</td>');
+                           	tr_html.push('<td>'+trd.price+'</td>');
+                           	tr_html.push('<td>'+trd.amount+'</td>');
+                           	tr_html.push('<td>'+trd.status+'</td>');
+                           	if(trd.status=="OK"){
+                                tr_html.push('<td><i class="glyphicon glyphicon-share-alt"></i><a href="javascript:cancelOrder('+trd.order_id+');">撤单</a></td>');
+							}else{
+                                tr_html.push('<td></td>');
+							}
+							$('#tab_trade').append(tr_html.join(""));
+						});
+
+						layer.msg('下单成功。');
+						setTimeout(function(){
+							$('#formId').submit();
+						},1000);
+					},'json');
+                    layer.close(index);
+                });
+
             }
 			</@shiro.hasPermission>
-
 
 			<@shiro.hasPermission name="/permission/clearPermissionByRoleIds.shtml">
 			<#--根据ID数组清空角色的权限-->
@@ -132,36 +169,18 @@
 					},'json');
 				});
 			}
-			/*
-			*根据角色ID选择权限，分配权限操作。
-			*/
-			function selectPermissionById(id){
+			
+			function cancelOrder(order_id){
 				var load = layer.load();
-				$.post("${basePath}/permission/selectPermissionById.shtml",{id:id},function(result){
+				$.post("${basePath}/trade/cancelOrder.shtml",{order_id:order_id},function(result){
 					layer.close(load);
 					if(result && result.length){
-						var html =[];
-						html.push('<div class="checkbox"><label><input type="checkbox"  selectAllBox="">全选</label></div>');
-						$.each(result,function(){
-							html.push("<div class='checkbox'><label>");
-							html.push("<input type='checkbox' selectBox='' id='");
-							html.push(this.id);
-							html.push("'");
-							if(this.check){
-								html.push(" checked='checked'");
-							}
-							html.push("name='");
-							html.push(this.name);
-							html.push("'/>");
-							html.push(this.name);
-							html.push('</label></div>');
-						});
-						//初始化全选。
-						return so.id('boxRoleForm').html(html.join('')),
-						so.checkBoxInit('[selectAllBox]','[selectBox]'),
-						$('#selectPermission').modal(),$('#selectRoleId').val(id),!1;
+					    var order_id = result.message.order_id;
+                        $("#order_" + order_id).fadeOut("slow", function (){
+                            $(this).remove();
+                        });
 					}else{
-						return layer.msg('没有获取到权限数据，请先添加权限数据。',so.default);
+						return layer.msg('撤单失败。',so.default);
 					}
 				},'json');
 			}
@@ -193,17 +212,17 @@
 				<div class="col-md-10">
 					<div clss="well">
 
-					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('btc_usd')">BTC/USDT</button>
-					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eth_usd')">ETH/USDT</button>
-					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eos_usd')">EOS/USDT</button>
+					  <button id="btc_usd_btn" type="button" class="btn btn-default" onclick="$('#trd_symbol').val('btc_usdt')">BTC/USDT</button>
+					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eth_usdt')">ETH/USDT</button>
+					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eos_usdt')">EOS/USDT</button>
 
 					  <table class="table table-bordered">
 						  <tr>
-							  <th width="7%"><input type="checkbox" name="trd_accounts" id="checkAll_accounts"/>全选</th>
-							  <td><input value="tian" check='box_account' type="checkbox" />账户tian</td>
-							  <td><input value="acc_2" check='box_account' type="checkbox" />账户A</td>
-							  <td><input value="acc_3" check='box_account' type="checkbox" />账户A</td>
-							  <td><input value="acc_4" check='box_account' type="checkbox" />账户A</td>
+							  <th width="7%"><input type="checkbox"  id="checkAll_accounts"/>全选</th>
+							  <td><input value="tian" check='account_box' type="checkbox" />账户tian</td>
+							  <td><input value="acc_2" check='account_box' type="checkbox" />账户A</td>
+							  <td><input value="acc_3" check='account_box' type="checkbox" />账户A</td>
+							  <td><input value="acc_4" check='account_box' type="checkbox" />账户A</td>
 						  </tr>
 					  </table>
 
@@ -216,12 +235,10 @@
 							  <li class="list-group-item">数量：
 								  <input type="text" name="trd_amount" id="trd_amount" placeholder="数量/amount">
 							  </li>
-							  <li class="list-group-item">。。。。。。。。。。</li>
 						  </ul>
 
 
 						<input type="text" name="trd_symbol" id="trd_symbol" value="">
-						<input type="text" name="trd_type" id="trd_type" value="buy">
 					 <span class=""> <#--pull-right -->
 						<button type="submit" class="btn btn-primary" onclick="trd_post('buy')">挂买单</button>
 						 <button type="submit" class="btn btn-primary" onclick="trd_post('sell')">挂卖单</button>
@@ -229,32 +246,32 @@
 					</div>
 
 					<hr>
-					<table class="table table-bordered">
+					<table id="tab_trade" class="table table-bordered">
 						<input type="hidden" id="selectRoleId">
 						<tr>
-							<th width="5%"><input type="checkbox" id="checkAll"/></th>
 							<th width="20%">时间</th>
 							<th width="10%">平台</th>
+							<th width="10%">账号</th>
+                            <th width="10%">买卖</th>
 							<th width="10%">价格</th>
                             <th width="10%">数量</th>
-                            <th width="10%">状态123</th>
-							<th width="15%">状态223</th>
-                            <th width="30%">操作</th>
+							<th width="15%">状态</th>
+                            <th width="10%">操作</th>
 						</tr>
-						<#if page?exists && page.list?size gt 0 >
-							<#list page.list as it>
-								<tr>
-									<td><input value="${it.id}" check='box' type="checkbox" /></td>
-									<td>${it.create_time?string('yyyy-MM-dd hh:mm:ss')}</td>
-									<td>${it.coin}</td>
-                                    <td>${it.price}</td>
-                                    <td>${it.amount}</td>
-                                    <td>${it.status}</td>
-									<td permissionIds="${it.status?default('')}">${it.status?default('-')}</td>
+						<#if resultMap?exists && resultMap.trade_ls?size gt 0 >
+							<#list resultMap.trade_ls as trd>
+								<tr id="order_"${trd.order_id}>
+									<td>${trd.create_tm}</td>
+									<td>${trd.site}</td>
+                                    <td>${trd.account}</td>
+                                    <td>${trd.type}</td>
+                                    <td>${trd.price}</td>
+                                    <td>${trd.amount}</td>
+                                    <td>${trd.status}</td>
 									<td>
-										<@shiro.hasPermission name="/permission/addPermission2Role.shtml">
-											<i class="glyphicon glyphicon-share-alt"></i><a href="javascript:selectPermissionById(${it.id});">撤单</a>
-										</@shiro.hasPermission>
+									<#if trd.status == "OK" >
+										<i class="glyphicon glyphicon-share-alt"></i><a href="javascript:cancelOrder(${trd.order_id});">撤单</a>
+									</#if>
 									</td>
 								</tr>
 							</#list>
@@ -266,7 +283,9 @@
 					</table>
 					<#if page?exists>
 						<div class="pagination pull-right">
-							${page.pageHtml}
+                            pageHtml
+
+							<#--${page.pageHtml}-->
 						</div>
 					</#if>
 

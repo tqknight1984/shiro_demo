@@ -3,6 +3,7 @@ package com.sojson.trade.controller;
 
 import com.sojson.common.controller.BaseController;
 import com.sojson.common.model.UPermission;
+import com.sojson.common.model.UTrade;
 import com.sojson.common.utils.DateUtil;
 import com.sojson.common.utils.LoggerUtils;
 import com.sojson.core.mybatis.page.Pagination;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,20 +33,26 @@ public class TradeController extends BaseController {
 	
 	@Autowired
 	TradeService tradeService;
-	/**
-	 * 权限列表
-	 * @param findContent	查询内容
-	 * @param pageNo		页码
-	 * @param modelMap		参数回显
-	 * @return
-	 */
+
+
 	@RequestMapping(value="index")
-	public ModelAndView index(String findContent,ModelMap modelMap,Integer pageNo){
-		modelMap.put("findContent", findContent);
-		System.out.println("----modelMap------->"+modelMap.toString());
-		Pagination<UPermission> permissions = tradeService.findPage(modelMap,pageNo,pageSize);
-		System.out.println("----tradeService.findPage------->"+permissions.getList().size());
-		return new ModelAndView("trade/index","page",permissions);
+	public ModelAndView index(String symbol,String site){
+		List<UTrade> trade_ls = null;
+		try {
+//		modelMap.put("findContent", findContent);
+//		System.out.println("----modelMap------->"+modelMap.toString());
+//		Pagination<UTrade>  trade = tradeService.findPage(modelMap,pageNo,pageSize);
+			UTrade trade = new UTrade();
+			trade.setSite("OKEX");
+			trade.setSymbol("btc_usdt");
+			trade.setStatus("OK");
+			trade_ls = tradeService.selectByField(trade);
+			System.out.println("----tradeService.findPage------->" + trade_ls.size());
+			resultMap.put("trade_ls", trade_ls);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return new ModelAndView("trade/index","resultMap",resultMap);
 	}
 
 
@@ -57,9 +64,9 @@ public class TradeController extends BaseController {
 	@RequestMapping(value="ticker",method={RequestMethod.POST,RequestMethod.GET})
 	@ResponseBody
 	public Map<String,Object> ticker(String symbol){
-		System.out.println("----ticker--2222----->"+symbol);
 		try {
 			String res = StockClient_tq.getInstance().ticker();
+			System.out.println("行情-->"+res);
 			JSONObject res_json = JSONObject.fromObject(res);
 			long date = Long.valueOf(res_json.get("date").toString());
 			String curr_tm = DateUtil.getTimeString(date * 1000L);
@@ -75,6 +82,28 @@ public class TradeController extends BaseController {
 	}
 
 	/**
+	 * 取消订单
+	 * @param order_id
+	 * @return
+	 */
+	@RequestMapping(value="cancel_order",method={RequestMethod.POST})
+	@ResponseBody
+	public Map<String,Object> cancel_order(String symbol, String order_id){
+		try {
+			String res = StockClient_tq.getInstance().cancel_order(symbol, order_id);
+			System.out.println("取消订单-->"+res);//{"result":true,"order_id":"867323062"}
+			JSONObject res_json = JSONObject.fromObject(res);
+			resultMap.put("status", 200);
+			resultMap.put("message", res_json);
+		} catch (Exception e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "取消订单报错，请刷新后再试！");
+			LoggerUtils.fmtError(getClass(), e, "取消订单报错。source[%s]", order_id);
+		}
+		return resultMap;
+	}
+
+	/**
 	 * 当前行情
 	 * @param trd_symbol
 	 * @return
@@ -83,14 +112,12 @@ public class TradeController extends BaseController {
 	@ResponseBody
 	public Map<String,Object> trd_post(String trd_symbol, String trd_type,  String trd_price, String trd_amount, String trd_accounts){
 		System.out.println("----trade----->"+trd_accounts);
+		List res_ls = new ArrayList();
 		try {
-
-			List res_ls = new ArrayList();
-
 			String[] accounts = trd_accounts.split(",");
 
 			for (int i = 0; i < accounts.length; i++) {
-				String account = accounts[1];
+				String account = accounts[i];
 				if(StringUtil.isEmpty(account)){
 					continue;
 				}
@@ -104,22 +131,39 @@ public class TradeController extends BaseController {
 				}
 
 				String res = client.trade(trd_symbol, trd_type, trd_price, trd_amount);
+				System.out.println("挂单-->"+res);//{"result":true,"order_id":867353519}
 				JSONObject res_json = JSONObject.fromObject(res);
-				if(res_json.containsKey("date")){
-					long date = Long.valueOf(res_json.get("date").toString());
-					String curr_tm = DateUtil.getTimeString(date * 1000L);
-					res_json.put("curr_tm", curr_tm);
+
+				UTrade record = new UTrade();
+				record.setSymbol(trd_symbol);
+				record.setType(trd_type);
+				record.setAmount(trd_amount);
+				record.setPrice(trd_price);
+				record.setAccount(client.getName());
+				record.setCreate_tm(DateUtil.getCurrentTimeString());
+				record.setStatus("OK");
+				record.setSite("OKEX");
+				//挂单成功
+				if(res_json != null && res_json.has("result") && (boolean)res_json.get("result")){
+					String order_id = String.valueOf(res_json.get("order_id"));
+					record.setOrder_id(order_id);
+					long id = tradeService.insert(record);
+					record.setId(id);
+					System.out.println("挂单成功-->"+res);
+				}else{
+					System.out.println("挂单失败-->"+res);
+//					挂单失败
 				}
-				res_json.put("account",client.getName());
-				res_ls.add(res_json);
+				JSONObject trd_json = JSONObject.fromObject(record);
+				res_ls.add(trd_json);
 			}
 
 			resultMap.put("status", 200);
 			resultMap.put("message", res_ls);
 		} catch (Exception e) {
 			resultMap.put("status", 500);
-			resultMap.put("message", "添加失败，请刷新后再试！");
-			LoggerUtils.fmtError(getClass(), e, "交易报错。source[%s]", trd_symbol);
+			resultMap.put("message", "下单失败，请刷新后再试！");
+			LoggerUtils.fmtError(getClass(), e, "下单失败。res_ls[%s]", res_ls.toString());
 		}
 		return resultMap;
 	}

@@ -4,33 +4,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sojson.common.model.UPermission;
+import com.sojson.common.dao.UTradeMapper;
+import com.sojson.common.model.UTrade;
 import com.sojson.core.mybatis.page.Pagination;
-import com.sojson.permission.bo.UPermissionBo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+//import com.sojson.permission.bo.UTradeBo;
 
-public interface TradeService {
+@Service
+public class TradeService{
 
-	int deleteByPrimaryKey(Long id);
+	@Autowired
+	UTradeMapper tradeMapper;
 
-	UPermission insert(UPermission record);
 
-	UPermission insertSelective(UPermission record);
+	public List<UTrade> selectByField(UTrade trade) {
+		return tradeMapper.selectByField(trade);
+	}
 
-	UPermission selectByPrimaryKey(Long id);
-
-	int updateByPrimaryKeySelective(UPermission record);
-
-	int updateByPrimaryKey(UPermission record);
-
-	Map<String, Object> deletePermissionById(String ids);
-
-	Pagination<UPermission> findPage(Map<String,Object> resultMap, Integer pageNo,
-									 Integer pageSize);
-	List<UPermissionBo> selectPermissionById(Long id);
-
-	Map<String, Object> addPermission2Role(Long roleId,String ids);
-
-	Map<String, Object> deleteByRids(String roleIds);
-	//根据用户ID查询权限（permission），放入到Authorization里。
-	Set<String> findPermissionByUserId(Long userId);
+	public long insert(UTrade record) {
+		long res =  tradeMapper.insert(record);
+		System.out.println("------->"+res);
+		return res;
+	}
 }

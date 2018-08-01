@@ -66,7 +66,7 @@
 
                   <li class="dropdown ${(index==4)?string('active','')}">
                       <a class="dropdown-toggle" href="${basePath}/trade/index.shtml">
-                          一键下单<span class="collapsing"></span>
+                          币币交易<span class="collapsing"></span>
                       </a>
                   </li>
 				<#--<li>
