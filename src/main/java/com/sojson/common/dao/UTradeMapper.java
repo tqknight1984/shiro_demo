@@ -22,6 +22,9 @@ public interface UTradeMapper {
     @SelectProvider(type = SqlProvider.class, method = "selectByField")
     List<UTrade> selectByField(UTrade trade);
 
+    @UpdateProvider(type = SqlProvider.class, method = "updateFieldById")
+    int updateFieldById(UTrade record);
+
 }
 
 

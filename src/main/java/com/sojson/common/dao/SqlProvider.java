@@ -21,4 +21,21 @@ public class SqlProvider {
     }
 
 
+    public String updateFieldById(UTrade trade) {
+        if(trade.getId()<1)
+            return null;
+        String sql = "update u_trade set ";
+        if(trade.getStatus() != null){
+            sql += " status = #{status},";
+        }
+        if(sql.endsWith(",")){
+            sql = sql.substring(0, sql.length()-1);
+        }
+        sql += " where id = #{id}";
+        System.out.println("sql--updateFieldById-->"+sql);
+        return sql;
+    }
+
+
+
 }

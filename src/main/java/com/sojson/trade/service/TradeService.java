@@ -27,4 +27,8 @@ public class TradeService{
 		System.out.println("------->"+res);
 		return res;
 	}
+
+	public int updateFieldById(UTrade record) {
+		return tradeMapper.updateFieldById(record);
+	}
 }

@@ -9,6 +9,7 @@ import com.sojson.common.utils.LoggerUtils;
 import com.sojson.core.mybatis.page.Pagination;
 import com.sojson.trade.service.TradeService;
 import net.sf.json.JSONObject;
+import okcoin.rest.OkClientFactory;
 import okcoin.rest.StockClient_base;
 import okcoin.rest.StockClient_tq;
 import okcoin.rest.StringUtil;
@@ -88,13 +89,30 @@ public class TradeController extends BaseController {
 	 */
 	@RequestMapping(value="cancel_order",method={RequestMethod.POST})
 	@ResponseBody
-	public Map<String,Object> cancel_order(String symbol, String order_id){
+	public Map<String,Object> cancel_order(long trd_id,String trd_account, String symbol, String order_id){
 		try {
-			String res = StockClient_tq.getInstance().cancel_order(symbol, order_id);
-			System.out.println("取消订单-->"+res);//{"result":true,"order_id":"867323062"}
+
+			StockClient_base client = OkClientFactory.getClient(trd_account);
+			if(client == null){
+				resultMap.put("status", 500);
+				resultMap.put("message", "账户异常："+trd_account);
+				return resultMap;
+			}
+
+			String res = client.cancel_order(symbol, order_id);
+			System.out.println(order_id + "取消订单-->"+res);//{"result":true,"order_id":"867323062"}
 			JSONObject res_json = JSONObject.fromObject(res);
+			//修改数据库
+			UTrade record = new UTrade();
+			record.setId(trd_id);
+			if(res_json.has("result") && (boolean)res_json.get("result"))
+				record.setStatus("CANCEL");
+			if(res_json.has("error_code") && (int)res_json.get("error_code") == 1009)
+				record.setStatus("NO ORDER");
+			tradeService.updateFieldById(record);
 			resultMap.put("status", 200);
-			resultMap.put("message", res_json);
+			resultMap.put("order_id", order_id);
+
 		} catch (Exception e) {
 			resultMap.put("status", 500);
 			resultMap.put("message", "取消订单报错，请刷新后再试！");
@@ -115,18 +133,15 @@ public class TradeController extends BaseController {
 		List res_ls = new ArrayList();
 		try {
 			String[] accounts = trd_accounts.split(",");
-
+			String errStr="";
 			for (int i = 0; i < accounts.length; i++) {
 				String account = accounts[i];
 				if(StringUtil.isEmpty(account)){
 					continue;
 				}
 
-				StockClient_base client = null;
-				if("tian".equals(account)){
-					client = StockClient_tq.getInstance();
-				}
-				else{
+				StockClient_base client = OkClientFactory.getClient(account);
+				if(client == null){
 					continue;
 				}
 
@@ -152,12 +167,14 @@ public class TradeController extends BaseController {
 					System.out.println("挂单成功-->"+res);
 				}else{
 					System.out.println("挂单失败-->"+res);
-//					挂单失败
+					errStr += client.getName() +"挂单失败；";
 				}
 				JSONObject trd_json = JSONObject.fromObject(record);
 				res_ls.add(trd_json);
 			}
-
+			if(!StringUtil.isEmpty(errStr)){
+				resultMap.put("errStr", errStr);
+			}
 			resultMap.put("status", 200);
 			resultMap.put("message", res_ls);
 		} catch (Exception e) {
