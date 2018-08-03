@@ -45,7 +45,7 @@ public class TradeController extends BaseController {
 //		Pagination<UTrade>  trade = tradeService.findPage(modelMap,pageNo,pageSize);
 			UTrade trade = new UTrade();
 			trade.setSite("OKEX");
-			trade.setSymbol("btc_usdt");
+//			trade.setSymbol("btc_usdt");
 			trade.setStatus("OK");
 			trade_ls = tradeService.selectByField(trade);
 			System.out.println("----tradeService.findPage------->" + trade_ls.size());

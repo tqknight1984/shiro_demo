@@ -15,7 +15,7 @@ public class SqlProvider {
         if(trade.getSite() != null){
             sql += " and site =  #{site}";
         }
-        sql += " limit 100";
+        sql += " order by create_tm desc limit 100";
         System.out.println("sql--selectByStatus-->"+sql);
         return sql;
     }

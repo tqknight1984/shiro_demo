@@ -40,7 +40,7 @@
 							console.log('===200==='+result.message);
 							$('#trade_ticker').html(result.message.ticker.last);
 							$('#trade_curr_tm').html(result.message.curr_tm);
-							// setTimeout(init_ticker,1000);
+							setTimeout(init_ticker,1000);
 						}else{
 							console.log('====500===')
 						}
@@ -197,19 +197,23 @@
                         <table class="table table-bordered">
                             <tr>
 								<td width="50%">更新时间：<span  id="trade_curr_tm">...</span></td>
-                                <td>最新成交价：<span  id="trade_ticker">...</span></td>
+                                <td></td>
                             </tr>
                             <tr>
+                                <td>最新成交价：<span  id="trade_ticker">...</span></td>
                                 <td > 价格：<input type="text" name="trd_price" id="trd_price" placeholder="价格/price"></td>
-                                <td>数量：<input type="text" name="trd_amount" id="trd_amount" placeholder="数量/amount"></td>
                             </tr>
                             <tr>
                                 <td>当前平台：<input type="text" name="x" id="x" value="" placeholder="OKEX" readonly></td>
-                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="" placeholder="btc_usdt" readonly></td>
+
+                                <td>数量：<input type="text" name="trd_amount" id="trd_amount" placeholder="数量/amount"></td>
                             </tr>
                             <tr>
-                                <td ><button type="submit" class="btn btn-primary" onclick="trd_post('buy')">挂买单</button></td>
-                                <td><button type="submit" class="btn btn-success" onclick="trd_post('sell')">挂卖单</button></td>
+                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="" placeholder="btc_usdt" readonly></td>
+                                <td >
+									<button type="submit" class="btn btn-primary" onclick="trd_post('buy')">挂买单</button>
+                                	<button type="submit" class="btn btn-success" onclick="trd_post('sell')">挂卖单</button>
+								</td>
                             </tr>
                         </table>
 					</div>
@@ -222,7 +226,8 @@
                             <th width="10%">买卖</th>
 							<th width="10%">价格</th>
                             <th width="10%">数量</th>
-							<th width="15%">状态</th>
+							<th width="10%">交易对</th>
+							<th width="10%">状态</th>
                             <th width="10%">操作</th>
 						</tr>
 						<#if resultMap?exists && resultMap.trade_ls?size gt 0 >
@@ -234,6 +239,7 @@
                                     <td>${trd.type}</td>
                                     <td>${trd.price}</td>
                                     <td>${trd.amount}</td>
+                                    <td>${trd.symbol}</td>
                                     <td>${trd.status}</td>
 									<td>
 									<#if trd.status == "OK" >
@@ -244,7 +250,7 @@
 							</#list>
 						<#else>
 							<tr>
-								<td class="text-center danger" colspan="4">没有找到角色</td>
+								<td class="text-center danger" colspan="9">没有挂单记录</td>
 							</tr>
 						</#if>
 					</table>

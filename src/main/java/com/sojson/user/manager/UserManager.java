@@ -1,14 +1,15 @@
 package com.sojson.user.manager;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.sojson.common.model.UPermission;
 import com.sojson.common.model.URole;
 import com.sojson.common.model.UUser;
+import com.sojson.common.utils.Base64Util;
 import com.sojson.common.utils.MathUtil;
+
+
+import org.apache.commons.codec.binary.Base64;
 
 public class UserManager {
 	
@@ -29,15 +30,25 @@ public class UserManager {
 	 * @return
 	 */
 	public static String md5Pswd(String email ,String pswd){
-		pswd = String.format("%s#root12345@%s", email,pswd);
+		pswd = String.format("%s#%s", email,pswd);
 		pswd = MathUtil.getMD5(pswd);
 		return pswd;
 	}
 
 	public static void main(String[] args) {
-		String  pswd = String.format("%s#root12345@%s", "admin","root12345");
-		pswd = MathUtil.getMD5(pswd);
-		System.out.println(pswd);
+//		String  pswd = String.format("%s#%s", "sdfsdf","sdfsdff");
+//		pswd = MathUtil.getMD5(pswd);
+//		System.out.println(pswd);
+
+		String str = "xxxxx";
+		str = Base64Util.jdkBase64Encoder(str);
+		System.out.println("加密后的字符串为：" + str);
+		str = Base64Util.jdkBase64Decoder(str);
+		if (str != null) {
+			System.out.println("解密后的字符串：" + str);
+		} else {
+			System.out.println("解密失败");
+		}
 	}
 
 
