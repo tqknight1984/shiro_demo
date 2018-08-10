@@ -64,11 +64,21 @@
 					</li>	
 				</@shiro.hasAnyRoles>
 
+				<@shiro.hasAnyRoles name='888888,666666'>
                   <li class="dropdown ${(index==4)?string('active','')}">
                       <a class="dropdown-toggle" href="${basePath}/trade/index.shtml">
                           币币交易<span class="collapsing"></span>
                       </a>
                   </li>
+				</@shiro.hasAnyRoles>
+
+			  <@shiro.hasAnyRoles name='888888,666666'>
+			  <li class="dropdown ${(index==5)?string('active','')}">
+				  <a class="dropdown-toggle" href="${basePath}/future/index.shtml">
+					  合约交易<span class="collapsing"></span>
+				  </a>
+			  </li>
+			  </@shiro.hasAnyRoles>
 				<#--<li>
 					<a class="dropdown-toggle" target="_blank" href="http://www.sojson.com/tag_shiro.html" target="_blank">
 						Shiro相关博客<span class="collapsing"></span>

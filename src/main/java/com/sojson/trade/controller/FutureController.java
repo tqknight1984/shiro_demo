@@ -2,15 +2,12 @@ package com.sojson.trade.controller;
 
 
 import com.sojson.common.controller.BaseController;
-import com.sojson.common.model.UTrade;
+import com.sojson.common.model.UFuture;
 import com.sojson.common.utils.DateUtil;
 import com.sojson.common.utils.LoggerUtils;
-import com.sojson.trade.service.TradeService;
+import com.sojson.trade.service.FutureService;
 import net.sf.json.JSONObject;
-import okcoin.rest.OkClientFactory;
-import okcoin.rest.StockClient_base;
-import okcoin.rest.StockClient_tq;
-import okcoin.rest.StringUtil;
+import okcoin.rest.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -25,31 +22,30 @@ import java.util.Map;
 
 @Controller
 @Scope(value="prototype")
-@RequestMapping("trade")
-public class TradeController extends BaseController {
+@RequestMapping("future")
+public class FutureController extends BaseController {
 	
 	@Autowired
-	TradeService tradeService;
-
+	FutureService futureService;
 
 	@RequestMapping(value="index")
 	public ModelAndView index(String symbol,String site){
-		List<UTrade> trade_ls = null;
+		List<UFuture> trade_ls = null;
 		try {
 //		modelMap.put("findContent", findContent);
 //		System.out.println("----modelMap------->"+modelMap.toString());
-//		Pagination<UTrade>  trade = tradeService.findPage(modelMap,pageNo,pageSize);
-			UTrade trade = new UTrade();
+//		Pagination<UFuture>  trade = futureService.findPage(modelMap,pageNo,pageSize);
+			UFuture trade = new UFuture();
 			trade.setSite("OKEX");
 //			trade.setSymbol("btc_usdt");
 			trade.setStatus("OK");
-			trade_ls = tradeService.selectByField(trade);
-			System.out.println("----tradeService.findPage------->" + trade_ls.size());
+			trade_ls = futureService.selectByField(trade);
+			System.out.println("----futureService.findPage------->" + trade_ls.size());
 			resultMap.put("trade_ls", trade_ls);
 		}catch (Exception e){
 			e.printStackTrace();
 		}
-		return new ModelAndView("trade/index","resultMap",resultMap);
+		return new ModelAndView("future/index","resultMap",resultMap);
 	}
 
 
@@ -85,27 +81,26 @@ public class TradeController extends BaseController {
 	 */
 	@RequestMapping(value="cancel_order",method={RequestMethod.POST})
 	@ResponseBody
-	public Map<String,Object> cancel_order(long trd_id,String trd_account, String symbol, String order_id){
+	public Map<String,Object> cancel_order(long trd_id,String trd_account, String symbol,String contractType, String order_id){
 		try {
-
-			StockClient_base client = OkClientFactory.getStockClient(trd_account);
+			FutureClient_base client = OkClientFactory.getFutureClient(trd_account);
 			if(client == null){
 				resultMap.put("status", 500);
 				resultMap.put("message", "账户异常："+trd_account);
 				return resultMap;
 			}
 
-			String res = client.cancel_order(symbol, order_id);
+			String res = client.cancel_order(symbol, contractType,order_id);
 			System.out.println(order_id + "取消订单-->"+res);//{"result":true,"order_id":"867323062"}
 			JSONObject res_json = JSONObject.fromObject(res);
 			//修改数据库
-			UTrade record = new UTrade();
+			UFuture record = new UFuture();
 			record.setId(trd_id);
 			if(res_json.has("result") && (boolean)res_json.get("result"))
 				record.setStatus("CANCEL");
 			if(res_json.has("error_code") && (int)res_json.get("error_code") == 1009)
 				record.setStatus("NO ORDER");
-			tradeService.updateFieldById(record);
+			futureService.updateFieldById(record);
 			resultMap.put("status", 200);
 			resultMap.put("order_id", order_id);
 
@@ -124,7 +119,7 @@ public class TradeController extends BaseController {
 	 */
 	@RequestMapping(value="trade",method={RequestMethod.POST})
 	@ResponseBody
-	public Map<String,Object> trd_post(String trd_symbol, String trd_type,  String trd_price, String trd_amount, String trd_accounts){
+	public Map<String,Object> trd_post(String trd_symbol, String trd_contract_type, String trd_type,  String trd_price, String trd_amount, String trd_accounts){
 		System.out.println("----trade----->"+trd_accounts);
 		List res_ls = new ArrayList();
 		try {
@@ -136,16 +131,17 @@ public class TradeController extends BaseController {
 					continue;
 				}
 
-				StockClient_base client = OkClientFactory.getStockClient(account);
+				FutureClient_base client = OkClientFactory.getFutureClient(account);
 				if(client == null){
 					continue;
 				}
 
-				String res = client.trade(trd_symbol, trd_type, trd_price, trd_amount);
+
+				String res = client.trade(trd_symbol, trd_contract_type, trd_price, trd_amount, trd_type);
 				System.out.println("挂单-->"+res);//{"result":true,"order_id":867353519}
 				JSONObject res_json = JSONObject.fromObject(res);
 
-				UTrade record = new UTrade();
+				UFuture record = new UFuture();
 				record.setSymbol(trd_symbol);
 				record.setType(trd_type);
 				record.setAmount(trd_amount);
@@ -158,7 +154,7 @@ public class TradeController extends BaseController {
 				if(res_json != null && res_json.has("result") && (boolean)res_json.get("result")){
 					String order_id = String.valueOf(res_json.get("order_id"));
 					record.setOrder_id(order_id);
-					long id = tradeService.insert(record);
+					long id = futureService.insert(record);
 					record.setId(id);
 					System.out.println("挂单成功-->"+res);
 				}else{

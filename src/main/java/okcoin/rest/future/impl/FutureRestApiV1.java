@@ -24,6 +24,8 @@ public class FutureRestApiV1 implements IFutureRestApi {
 	
 	private String url_prex;
 
+	protected  String name = "base";
+
 	public FutureRestApiV1(String url_prex,String api_key, String secret_key) {
 		this.api_key = api_key;
 		this.secret_key = secret_key;

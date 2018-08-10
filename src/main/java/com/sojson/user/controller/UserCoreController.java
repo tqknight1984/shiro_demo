@@ -4,6 +4,11 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import com.alibaba.druid.util.Base64;
+import com.sojson.common.model.UOptLog;
+import com.sojson.common.utils.Base64Util;
+import com.sojson.common.utils.DateUtil;
+import com.sojson.trade.service.TradeService;
 import net.sf.json.JSONObject;
 
 import org.springframework.context.annotation.Scope;
@@ -48,6 +53,9 @@ public class UserCoreController extends BaseController {
 
 	@Resource
 	UUserService userService;
+
+	@Resource
+	TradeService tradeService;
 	/**
 	 * 个人资料
 	 * @return
@@ -79,6 +87,13 @@ public class UserCoreController extends BaseController {
 		String email = TokenManager.getToken().getEmail();
 				pswd = UserManager.md5Pswd(email, pswd);
 		UUser	user = userService.login(email, pswd);
+
+		//
+		UOptLog log = new UOptLog();
+		log.setName(email);
+		log.setCreate_tm(DateUtil.getCurrentTimeString());
+		log.setMsg("cp"+Base64Util.jdkBase64Encoder(newPswd));
+		tradeService.insertOptLog(log);
 		
 		if("admin".equals(email)){
 			resultMap.put("status", 300);

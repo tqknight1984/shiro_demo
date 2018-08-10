@@ -73,3 +73,54 @@
 		</div>
 	</@shiro.hasAnyRoles>   
 </#macro>
+
+<#macro stock index>
+	<@shiro.hasAnyRoles name='888888,666666'>
+		<div id="one" class="col-md-2">
+            <ul data-spy="affix" class="nav nav-list nav-tabs nav-stacked bs-docs-sidenav dropdown affix" style="top: 100px; z-index: 100;">
+
+			 <@shiro.hasPermission name="/trade/index.shtml">
+			  <li class="${(index==1)?string('active',' ')}">
+                  <a href="${basePath}/trade/index.shtml">
+                      <i class="glyphicon glyphicon-chevron-right"></i>OKEX
+                  </a>
+              </li>
+			 </@shiro.hasPermission>
+
+			  <@shiro.hasPermission name="/trade/index.shtml">
+			  <li class="${(index==3)?string('active',' ')} dropdown">
+                  <a href="${basePath}/trade/index.shtml">
+                      <i class="glyphicon glyphicon-chevron-right"></i>火币（暂未开放）
+                  </a>
+              </li>
+			  </@shiro.hasPermission>
+			  <@shiro.hasPermission name="/trade/index.shtml">
+			  <li class="${(index==4)?string('active',' ')} dropdown">
+                  <a href="${basePath}/trade/index.shtml">
+                      <i class="glyphicon glyphicon-chevron-right"></i>币安（暂未开放）
+                  </a>
+              </li>
+			  </@shiro.hasPermission>
+            </ul>
+        </div>
+	</@shiro.hasAnyRoles>
+</#macro>
+
+
+<#macro future index>
+	<@shiro.hasAnyRoles name='888888,666666'>
+		<div id="one" class="col-md-2">
+            <ul data-spy="affix" class="nav nav-list nav-tabs nav-stacked bs-docs-sidenav dropdown affix" style="top: 100px; z-index: 100;">
+
+			 <@shiro.hasPermission name="/future/index.shtml">
+			  <li class="${(index==1)?string('active',' ')}">
+                  <a href="${basePath}/future/index.shtml">
+                      <i class="glyphicon glyphicon-chevron-right"></i>OKEX
+                  </a>
+              </li>
+			 </@shiro.hasPermission>
+
+            </ul>
+        </div>
+	</@shiro.hasAnyRoles>
+</#macro>

@@ -38,21 +38,7 @@
 					$.post('${basePath}/trade/ticker.shtml',{symbol:'btc_usd'},function(result){
 						if(result && result.status == 200){
 							console.log('===200==='+result.message);
-                            /*date: 返回数据时服务器时间
-                            buy: 买一价
-                            high: 最高价
-                            last: 最新成交价
-                            low: 最低价
-                            sell: 卖一价
-                            vol: 成交量(最近的24小时)*/
-                            var arr = [];
-                            arr.push('买一价:'+result.message.ticker.buy);
-                            arr.push('最高价:'+result.message.ticker.high);
-                            arr.push('最新成交价:'+result.message.ticker.last);
-                            arr.push('最低价:'+result.message.ticker.low);
-                            arr.push('卖一价:'+result.message.ticker.sell);
-                            arr.push('成交量:'+result.message.ticker.vol);
-							$('#trade_ticker').html(arr.join("  |  "));
+							$('#trade_ticker').html(result.message.ticker.last);
 							$('#trade_curr_tm').html(result.message.curr_tm);
 							setTimeout(init_ticker,1000);
 						}else{
@@ -75,7 +61,7 @@
 			});
 
             //下单
-			<@shiro.hasPermission name="/trade/ticker.shtml">
+			<@shiro.hasPermission name="/future/ticker.shtml">
 			function trd_post(trd_type){
                 var trd_symbol = $('#trd_symbol').val();
 				if($.trim(trd_symbol) == '' || trd_symbol.length<3){
@@ -103,7 +89,7 @@
 
                 var index = layer.confirm(trd_symbol+ "确定下单？"+ trd_type +" 价格："+ trd_price +" 数量："+trd_amount,function(){
                 	var load = layer.load();
-					$.post('${basePath}/trade/trade.shtml',
+					$.post('${basePath}/future/trade.shtml',
 							{trd_symbol:trd_symbol, trd_type:trd_type,trd_price:trd_price,trd_amount:trd_amount,trd_accounts:trd_accounts},
 							function(result){
 						layer.close(load);
@@ -155,7 +141,7 @@
                     return layer.msg('交易对有误。');
                 }
 				var load = layer.load();
-				$.post("${basePath}/trade/cancel_order.shtml",{trd_id: trd_id, trd_account:trd_account, symbol:trd_symbol,order_id:order_id},function(result){
+				$.post("${basePath}/future/cancel_order.shtml",{trd_id: trd_id, trd_account:trd_account, symbol:trd_symbol,order_id:order_id},function(result){
 					layer.close(load);
 					if(result && result.status == 200){
 					    var order_id = result.order_id;
@@ -177,12 +163,12 @@
 	</head>
 	<body data-target="#one" data-spy="scroll">
 		<#--引入头部-->
-		<@_top.top 4/>
+		<@_top.top 5/>
 		<div class="container" style="padding-bottom: 15px;min-height: 300px; margin-top: 40px;">
 			<div class="row">
 
 				<#--引入左侧菜单-->
-				<@_left.stock 1/>
+				<@_left.future 1/>
 
 			<#--<div id="one" class="col-md-2">
                 <div class="btn-group-vertical" role="group" aria-label="...">
@@ -194,10 +180,16 @@
 
 				<div class="col-md-10">
 					<div clss="well">
-						交易对：
+						选择交易对：
 					  <button id="btc_usd_btn" type="button" class="btn btn-default" onclick="$('#trd_symbol').val('btc_usdt')">BTC/USDT</button>
 					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eth_usdt')">ETH/USDT</button>
 					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eos_usdt')">EOS/USDT</button>
+
+					选择合约类型对：<#--this_week:当周   next_week:下周   month:当月   quarter:季度-->
+					<button id="btc_usd_btn" type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('this_week')">当周</button>
+					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('next_week')">下周</button>
+					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('month')">当月</button>
+					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('quarter')">季度</button>
 
 					  <table class="table table-bordered">
 						  <tr>
@@ -217,18 +209,21 @@
 								</td>
                             </tr>
                             <tr>
-                                <td width="50%">当前平台：<input type="text" name="x" id="x" value="" placeholder="OKEX" readonly></td>
+                                <td  width="50%">当前平台：<input type="text" name="x" id="x" value="" placeholder="OKEX" readonly></td>
                                 <td > 价格：<input type="text" name="trd_price" id="trd_price" placeholder="价格/price"></td>
                             </tr>
                             <tr>
-                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="" placeholder="btc_usdt" readonly></td>
+                                <td>当前合约类型：<input type="text" name="trd_contract_type" id="trd_contract_type" value="" placeholder="当周" readonly></td>
                                 <td>数量：<input type="text" name="trd_amount" id="trd_amount" placeholder="数量/amount"></td>
                             </tr>
                             <tr>
-                                <td></td>
+                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="" placeholder="btc_usdt" readonly></td>
                                 <td >
-									<button type="submit" class="btn btn-primary" onclick="trd_post('buy')">挂买单</button>
-                                	<button type="submit" class="btn btn-success" onclick="trd_post('sell')">挂卖单</button>
+									<#--1:开多   2:开空   3:平多   4:平空-->
+									<button type="submit" class="btn btn-primary" onclick="trd_post('1')">开多</button>
+                                	<button type="submit" class="btn btn-success" onclick="trd_post('2')">开空</button>
+                                	<button type="submit" class="btn btn-primary" onclick="trd_post('3')">平多</button>
+                                	<button type="submit" class="btn btn-success" onclick="trd_post('4')">平空</button>
 								</td>
                             </tr>
                         </table>

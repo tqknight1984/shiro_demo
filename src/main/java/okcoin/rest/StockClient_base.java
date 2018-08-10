@@ -30,7 +30,7 @@ public abstract class StockClient_base {
 	protected  IStockRestApi stockPost;
 
 	public void test() throws IOException, HttpException {
-		System.out.printf("----->"+this.ticker());
+		System.out.printf("----->"+this.ticker("btc_usdt"));
 	}
 
 	public String getName() throws IOException, HttpException {
@@ -38,7 +38,7 @@ public abstract class StockClient_base {
 	}
 
 	//现货行情
-	public String ticker() throws IOException, HttpException {
+	public String ticker(String symbol) throws IOException, HttpException {
 		String res  = stockGet.ticker("btc_usdt");
 		return res;
 	}

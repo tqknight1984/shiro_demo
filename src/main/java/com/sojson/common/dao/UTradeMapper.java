@@ -1,5 +1,6 @@
 package com.sojson.common.dao;
 
+import com.sojson.common.model.UOptLog;
 import com.sojson.common.model.UTrade;
 import org.apache.ibatis.annotations.*;
 //import com.sojson.permission.bo.UTradeBo;
@@ -13,6 +14,9 @@ public interface UTradeMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(UTrade record);
 
+    @Insert("insert into u_opt_log (name, create_tm, msg) values (#{name},#{create_tm},#{msg})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int insertOptLog(UOptLog record);
 
 //        @Select("select * from u_trade where status=#{status} limit 100")
 //    @Results({ @Result(id = true, column = "id", property = "id"),
@@ -24,6 +28,7 @@ public interface UTradeMapper {
 
     @UpdateProvider(type = SqlProvider.class, method = "updateFieldById")
     int updateFieldById(UTrade record);
+
 
 }
 

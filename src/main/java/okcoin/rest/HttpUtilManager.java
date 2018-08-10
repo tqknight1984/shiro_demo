@@ -61,11 +61,16 @@ public class HttpUtilManager {
              cm.closeIdleConnections(30, TimeUnit.SECONDS);
 		}
 	}
-	 
+
+
+	//设置代理IP、端口、协议（请分别替换）
+	private static HttpHost proxy = new HttpHost("127.0.0.1", 1080, "http");
+
 	private static RequestConfig requestConfig = RequestConfig.custom()
 	        .setSocketTimeout(20000)
 	        .setConnectTimeout(20000)
 	        .setConnectionRequestTimeout(20000)
+			.setProxy(proxy)
 	        .build();
 	
 	
