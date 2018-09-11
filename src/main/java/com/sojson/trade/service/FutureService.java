@@ -21,7 +21,7 @@ public class FutureService {
 	}
 
 	public long insert(UFuture record) {
-		long res =  futureMapper.insert(record);
+ 		long res =  futureMapper.insert(record);
 		System.out.println("--insert----->"+res);
 		return res;
 	}

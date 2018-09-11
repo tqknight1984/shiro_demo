@@ -14,7 +14,7 @@ import java.util.List;
 public interface UFutureMapper {
 //    int deleteByPrimaryKey(Long id);
 //
-    @Insert("insert into u_future (symbol, order_id, price, amount, create_tm, account, site, side, type, status) values (#{symbol},#{order_id},#{price},#{amount},#{create_tm},#{account},#{site},#{side},#{type},#{status})")
+    @Insert("insert into u_future (symbol, order_id, price, amount, create_tm, account, site, contract_type, type, status) values (#{symbol},#{order_id},#{price},#{amount},#{create_tm},#{account},#{site},#{contract_type},#{type},#{status})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(UFuture record);
 

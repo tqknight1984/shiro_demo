@@ -28,11 +28,11 @@ public class OkClientFactory {
         if("tian".equals(name)){
             return FutureClient_tq.getInstance();
         }
-//        else if("guoguo".equals(name)){
-//            return FutureClient_guoguo.getInstance();
-//        }else if("xianyang".equals(name)){
-//            return FutureClient_xianyang.getInstance();
-//        }
+        else if("guoguo".equals(name)){
+            return FutureClient_guoguo.getInstance();
+        }else if("xianyang".equals(name)){
+            return FutureClient_xianyang.getInstance();
+        }
         else{
             return null;
         }

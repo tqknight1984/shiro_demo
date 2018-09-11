@@ -16,6 +16,7 @@
 			so.init(function(){
 				//初始化全选。1111
 				so.checkBoxInit('#checkAll_accounts','[check=account_box]');
+
 				// $('#checkAll_accounts').click();
 				<@shiro.hasPermission name="/trade/index.shtml">
 				//全选
@@ -35,7 +36,9 @@
 				//取行情
 				<@shiro.hasPermission name="/trade/index.shtml">
 				function init_ticker(){
-					$.post('${basePath}/trade/ticker.shtml',{symbol:'btc_usd'},function(result){
+                    var trd_symbol = $('#trd_symbol').val();
+                    console.log('===trd_symbol==='+trd_symbol);
+					$.post('${basePath}/trade/ticker.shtml',{symbol:trd_symbol},function(result){
 						if(result && result.status == 200){
 							console.log('===200==='+result.message);
                             /*date: 返回数据时服务器时间
@@ -68,9 +71,6 @@
                 check_ls.each(function(){
                     this.checked="checked";
                 });
-
-                //默认btc_usd
-				$('#btc_usd_btn').click()
 
 			});
 
@@ -221,7 +221,7 @@
                                 <td > 价格：<input type="text" name="trd_price" id="trd_price" placeholder="价格/price"></td>
                             </tr>
                             <tr>
-                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="" placeholder="btc_usdt" readonly></td>
+                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="btc_usdt" readonly></td>
                                 <td>数量：<input type="text" name="trd_amount" id="trd_amount" placeholder="数量/amount"></td>
                             </tr>
                             <tr>

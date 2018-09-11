@@ -39,13 +39,17 @@ public abstract class StockClient_base {
 
 	//现货行情
 	public String ticker(String symbol) throws IOException, HttpException {
-		String res  = stockGet.ticker("btc_usdt");
+		String res  = stockGet.ticker(symbol);
 		return res;
 	}
 
+	public  static void main(String[] args){
+		System.out.println("-->"+(System.currentTimeMillis()/1000));
+	}
+
 	//现货OKCoin历史交易信息
-	public String trades() throws IOException, HttpException {
-		String res  = stockGet.trades("btc_usd", "20");
+	public String trades(String symbol,String since ) throws IOException, HttpException {
+		String res  = stockGet.trades(symbol, since);
 		return res;
 	}
 

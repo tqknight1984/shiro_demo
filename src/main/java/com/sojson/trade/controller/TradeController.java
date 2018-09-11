@@ -72,7 +72,7 @@ public class TradeController extends BaseController {
 			resultMap.put("message", res_json);
 		} catch (Exception e) {
 			resultMap.put("status", 500);
-			resultMap.put("message", "OKEX行情API异常，稍后再试！");
+			resultMap.put("message", symbol+"行情API异常，稍后再试！");
 			LoggerUtils.fmtError(getClass(), e, "行情报错。source[%s]", symbol);
 		}
 		return resultMap;
@@ -101,10 +101,17 @@ public class TradeController extends BaseController {
 			//修改数据库
 			UTrade record = new UTrade();
 			record.setId(trd_id);
-			if(res_json.has("result") && (boolean)res_json.get("result"))
+			if(res_json.has("result") && (boolean)res_json.get("result")) {
 				record.setStatus("CANCEL");
-			if(res_json.has("error_code") && (int)res_json.get("error_code") == 1009)
+			}
+			if(res_json.has("error_code") && (int)res_json.get("error_code") == 1009) {
 				record.setStatus("NO ORDER");
+			}
+			else{
+				resultMap.put("status", 500);
+				resultMap.put("message", "未处理状态："+res);
+				return resultMap;
+			}
 			tradeService.updateFieldById(record);
 			resultMap.put("status", 200);
 			resultMap.put("order_id", order_id);

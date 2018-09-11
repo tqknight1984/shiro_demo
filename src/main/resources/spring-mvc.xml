@@ -131,8 +131,8 @@
 					<prop key="datetime_format">yyyy-MM-dd HH:mm:ss</prop>
 					<prop key="date_format">yyyy-MM-dd</prop>
 					<prop key="time_format">HH:mm:ss</prop>
-	<!--			<prop key="number_format">0.######</prop>-->
-				<prop key="number_format">#</prop>
+				<prop key="number_format">0.##</prop>
+				<!--<prop key="number_format">#</prop>-->
 				<prop key="whitespace_stripping">true</prop>
 				<prop key="auto_import">
 					<!-- 自动装载，引入Freemarker，用于Freemarker Macro引入 -->

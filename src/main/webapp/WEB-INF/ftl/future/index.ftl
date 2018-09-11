@@ -2,7 +2,7 @@
 <html lang="zh-cn">
 	<head>
 		<meta charset="utf-8" />
-		<title>币币交易</title>
+		<title>合约交易</title>
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 		<link   rel="icon" href="${basePath}/favicon.ico" type="image/x-icon" />
 		<link   rel="shortcut icon" href="${basePath}/favicon.ico" />
@@ -16,8 +16,9 @@
 			so.init(function(){
 				//初始化全选。1111
 				so.checkBoxInit('#checkAll_accounts','[check=account_box]');
+
 				// $('#checkAll_accounts').click();
-				<@shiro.hasPermission name="/trade/index.shtml">
+				<@shiro.hasPermission name="/future/index.shtml">
 				//全选
 				so.id('deleteAll').on('click',function(){
 					var checkeds = $('[check=box]:checked');
@@ -33,12 +34,30 @@
 				</@shiro.hasPermission>
 
 				//取行情
-				<@shiro.hasPermission name="/trade/index.shtml">
+				<@shiro.hasPermission name="/future/index.shtml">
 				function init_ticker(){
-					$.post('${basePath}/trade/ticker.shtml',{symbol:'btc_usd'},function(result){
+                    var trd_symbol = $('#trd_symbol').val();
+                    var trd_contract_type = $('#trd_contract_type').val();
+					$.post('${basePath}/future/ticker.shtml',{symbol:trd_symbol, contractType:trd_contract_type},function(result){
 						if(result && result.status == 200){
 							console.log('===200==='+result.message);
-							$('#trade_ticker').html(result.message.ticker.last);
+                            // buy:买一价
+                            // contract_id:合约ID
+                            // high:最高价
+                            // last:最新成交价
+                            // low:最低价
+                            // sell:卖一价
+                            // unit_amount:合约面值
+                            // vol:成交量(最近的24小时)
+                            var arr = [];
+                            arr.push('合约ID:'+result.message.ticker.contract_id);
+                            arr.push('买一价:'+result.message.ticker.buy);
+                            arr.push('最高价:'+result.message.ticker.high);
+                            arr.push('最新成交价:'+result.message.ticker.last);
+                            arr.push('最低价:'+result.message.ticker.low);
+                            arr.push('卖一价:'+result.message.ticker.sell);
+                            arr.push('成交量:'+result.message.ticker.vol);
+                            $('#trade_ticker').html(arr.join("  |  "));
 							$('#trade_curr_tm').html(result.message.curr_tm);
 							setTimeout(init_ticker,1000);
 						}else{
@@ -55,17 +74,18 @@
                     this.checked="checked";
                 });
 
-                //默认btc_usd
-				$('#btc_usd_btn').click()
-
 			});
 
             //下单
-			<@shiro.hasPermission name="/future/ticker.shtml">
+			<@shiro.hasPermission name="/future/index.shtml">
 			function trd_post(trd_type){
                 var trd_symbol = $('#trd_symbol').val();
 				if($.trim(trd_symbol) == '' || trd_symbol.length<3){
                     return layer.msg('交易对有误。');
+                }
+                var trd_contract_type = $('#trd_contract_type').val();
+                if($.trim(trd_contract_type) == '' || trd_contract_type.length<3){
+                    return layer.msg('合约类型有误。');
                 }
                 trd_price  = $('#trd_price').val();
                 trd_amount  = $('#trd_amount').val();
@@ -78,11 +98,11 @@
 
                 var trd_accounts = "";
                 var checkeds = $('[check=account_box]:checked');
-                console.log(checkeds.length);
                 $.each(checkeds,function(){
-                    //console.log(this.value);
+                    console.log("-->"+this.value);
                     trd_accounts = trd_accounts+(this.value+",")
                 });
+                console.log("trd_accounts--->"+trd_accounts);
                 if($.trim(trd_accounts) == '' || trd_accounts.length < 1 ){
                     return layer.msg('请选中操作账号');
                 }
@@ -90,7 +110,7 @@
                 var index = layer.confirm(trd_symbol+ "确定下单？"+ trd_type +" 价格："+ trd_price +" 数量："+trd_amount,function(){
                 	var load = layer.load();
 					$.post('${basePath}/future/trade.shtml',
-							{trd_symbol:trd_symbol, trd_type:trd_type,trd_price:trd_price,trd_amount:trd_amount,trd_accounts:trd_accounts},
+							{trd_symbol:trd_symbol,trd_contract_type:trd_contract_type,trd_price:trd_price,trd_amount:trd_amount,trd_type:trd_type,trd_accounts:trd_accounts},
 							function(result){
 						layer.close(load);
 						if(result && result.status != 200){
@@ -101,18 +121,44 @@
 						$.each(res_ls, function(k, trd){
 						    console.log("---下单res----333--->"+trd.order_id);
 						    if(trd.order_id && trd.order_id.length > 2){
+						        var contractType = "";
+                                if(trd.contract_type == "this_week"){
+                                    contractType ="当周";
+                                }else if(trd.contract_type == "next_week"){
+                                    contractType ="次周";
+                                }else if(trd.contract_type == "month"){
+                                    contractType ="当月";
+                                }else if(trd.contract_type == "quarter"){
+                                    contractType ="季度";
+                                }else{
+                                    contractType = "";
+                                }
+						        var type = "";
+                                if(trd.type == "1"){
+                                    type ="开多";
+                                }else if(trd.type == "2"){
+                                    type ="开空";
+                                }else if(trd.type == "3"){
+                                    type ="平多";
+                                }else if(trd.type == "4"){
+                                    type ="平空";
+                                }else{
+                                    type = "";
+                                }
+
 								var tr_html=[];
 								tr_html.push('<tr id=\'order_'+trd.order_id+'\'>');
 								tr_html.push('<td>'+trd.create_tm+'</td>');
 								tr_html.push('<td>'+trd.site+'</td>');
 								tr_html.push('<td>'+trd.account+'</td>');
-								tr_html.push('<td>'+trd.type.toUpperCase()+'</td>');
+                                tr_html.push('<td>'+contractType+'</td>');
+								tr_html.push('<td>'+type+'</td>');
 								tr_html.push('<td>'+trd.price+'</td>');
 								tr_html.push('<td>'+trd.amount+'</td>');
 								tr_html.push('<td>'+trd.symbol+'</td>');
 								tr_html.push('<td>'+trd.status+'</td>');
 								if(trd.status=="OK"){
-									tr_html.push('<td><i class="glyphicon glyphicon-share-alt"></i><a href="javascript:cancelOrder('+ trd.id + ', \''+ trd.account+ '\','+ trd.order_id +');">撤单</a></td></tr>');
+									tr_html.push('<td><i class="glyphicon glyphicon-share-alt"></i><a href="javascript:cancelOrder('+ trd.id + ', \''+ trd.account+ '\',\''+ trd.contract_type+ '\','+ trd.order_id +');">撤单</a></td></tr>');
 								}else{
 									tr_html.push('<td></td></tr>');
 								}
@@ -135,13 +181,16 @@
             }
 
             //撤单
-			function cancelOrder(trd_id, trd_account, order_id){
+			function cancelOrder(trd_id, trd_account, contract_type, order_id){
                 var trd_symbol = $('#trd_symbol').val();
                 if($.trim(trd_symbol) == '' || trd_symbol.length<3){
                     return layer.msg('交易对有误。');
                 }
+                if($.trim(contract_type) == '' || contract_type.length<3){
+                    return layer.msg('交易对有误。');
+                }
 				var load = layer.load();
-				$.post("${basePath}/future/cancel_order.shtml",{trd_id: trd_id, trd_account:trd_account, symbol:trd_symbol,order_id:order_id},function(result){
+				$.post("${basePath}/future/cancel_order.shtml",{trd_id: trd_id, trd_account:trd_account, symbol:trd_symbol,contractType:contract_type,order_id:order_id},function(result){
 					layer.close(load);
 					if(result && result.status == 200){
 					    var order_id = result.order_id;
@@ -153,10 +202,6 @@
 					}
 				},'json');
 			}
-
-			function test(){
-				console.log("------>")
-            }
 
 			</@shiro.hasPermission>
 		</script>
@@ -186,10 +231,10 @@
 					  <button type="button" class="btn btn-default" onclick="$('#trd_symbol').val('eos_usdt')">EOS/USDT</button>
 
 					选择合约类型对：<#--this_week:当周   next_week:下周   month:当月   quarter:季度-->
-					<button id="btc_usd_btn" type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('this_week')">当周</button>
-					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('next_week')">下周</button>
-					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('month')">当月</button>
-					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type').val('quarter')">季度</button>
+					<button id="btc_usd_btn" type="button" class="btn btn-default" onclick="$('#trd_contract_type_view').val('当周');$('#trd_contract_type').val('this_week')">当周</button>
+					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type_view').val('下周');$('#trd_contract_type').val('next_week')">下周</button>
+					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type_view').val('当月');$('#trd_contract_type').val('month')">当月</button>
+					<button type="button" class="btn btn-default" onclick="$('#trd_contract_type_view').val('季度');$('#trd_contract_type').val('quarter')">季度</button>
 
 					  <table class="table table-bordered">
 						  <tr>
@@ -209,15 +254,18 @@
 								</td>
                             </tr>
                             <tr>
-                                <td  width="50%">当前平台：<input type="text" name="x" id="x" value="" placeholder="OKEX" readonly></td>
+                                <td  width="50%">当前平台：<input type="text" name="x" id="x" value="OKEX" readonly></td>
                                 <td > 价格：<input type="text" name="trd_price" id="trd_price" placeholder="价格/price"></td>
                             </tr>
                             <tr>
-                                <td>当前合约类型：<input type="text" name="trd_contract_type" id="trd_contract_type" value="" placeholder="当周" readonly></td>
+                                <td>当前合约类型：
+									<input type="text" id="trd_contract_type_view" value="季度" readonly>
+                                    <input type="hidden" id="trd_contract_type" value="quarter" readonly>
+								</td>
                                 <td>数量：<input type="text" name="trd_amount" id="trd_amount" placeholder="数量/amount"></td>
                             </tr>
                             <tr>
-                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="" placeholder="btc_usdt" readonly></td>
+                                <td>当前交易对：<input type="text" name="trd_symbol" id="trd_symbol" value="btc_usdt" readonly></td>
                                 <td >
 									<#--1:开多   2:开空   3:平多   4:平空-->
 									<button type="submit" class="btn btn-primary" onclick="trd_post('1')">开多</button>
@@ -227,19 +275,21 @@
 								</td>
                             </tr>
                         </table>
+						<span>杠杆倍数，下单时无需传送，系统取用户在页面上设置的杠杆倍数。且“开仓”若有10倍多单，就不能再下20倍多单</span>
 					</div>
 
 					<table id="tab_trade" class="table table-bordered">
 						<tr>
-							<th width="20%">时间</th>
-							<th width="10%">平台</th>
-							<th width="10%">账号</th>
-                            <th width="10%">买卖</th>
-							<th width="10%">价格</th>
-                            <th width="10%">数量</th>
-							<th width="10%">交易对</th>
-							<th width="10%">状态</th>
-                            <th width="10%">操作</th>
+							<th >时间</th>
+							<th >平台</th>
+							<th >账号</th>
+                            <th >类型</th>
+                            <th >买卖</th>
+							<th >价格</th>
+                            <th >数量</th>
+							<th >交易对</th>
+							<th >状态</th>
+                            <th >操作</th>
 						</tr>
 						<#if resultMap?exists && resultMap.trade_ls?size gt 0 >
 							<#list resultMap.trade_ls as trd>
@@ -247,21 +297,34 @@
 									<td>${trd.create_tm}</td>
 									<td>${trd.site}</td>
                                     <td>${trd.account}</td>
-                                    <td>${trd.type}</td>
+                                    <td>
+										<#if trd.contract_type == "this_week">当周
+										<#elseif trd.contract_type == "next_week">次周
+										<#elseif trd.contract_type == "month">当月
+										<#elseif trd.contract_type == "quarter">季度
+										</#if>
+									</td>
+                                    <td>
+										<#if trd.type == "1">开多
+										<#elseif trd.type == "2">开空
+										<#elseif trd.type == "3">平多
+										<#elseif trd.type == "4">平空
+										</#if>
+									</td>
                                     <td>${trd.price}</td>
                                     <td>${trd.amount}</td>
                                     <td>${trd.symbol}</td>
                                     <td>${trd.status}</td>
 									<td>
 									<#if trd.status == "OK" >
-										<i class="glyphicon glyphicon-share-alt"></i><a href="javascript:cancelOrder(${trd.id}, '${trd.account}',${trd.order_id});">撤单</a>
+										<i class="glyphicon glyphicon-share-alt"></i><a href="javascript:cancelOrder(${trd.id}, '${trd.account}','${trd.contract_type}',${trd.order_id});">撤单</a>
 									</#if>
 									</td>
 								</tr>
 							</#list>
 						<#else>
 							<tr>
-								<td class="text-center danger" colspan="9">没有挂单记录</td>
+								<td class="text-center danger" colspan="10">没有挂单记录</td>
 							</tr>
 						</#if>
 					</table>

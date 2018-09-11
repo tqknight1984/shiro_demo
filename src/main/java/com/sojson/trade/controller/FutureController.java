@@ -48,6 +48,51 @@ public class FutureController extends BaseController {
 		return new ModelAndView("future/index","resultMap",resultMap);
 	}
 
+	@RequestMapping(value="userinfoView")
+	public ModelAndView userinfoView(String trd_account){
+		System.out.println("----userinfoView------->");
+		try {
+			if(StringUtil.isEmpty(trd_account)){
+				trd_account = "tian";
+			}
+			FutureClient_base client = OkClientFactory.getFutureClient(trd_account);
+			String res = client.future_userinfo_4fix();
+			System.out.println("----future_userinfo_4fix------->"+res);
+			JSONObject res_json = JSONObject.fromObject(res);
+			if(res_json.has("result") && res_json.getBoolean("result")){
+				resultMap.put("info", res_json.getJSONObject("info"));
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		resultMap.put("trd_account", trd_account);
+		return new ModelAndView("future/userinfo","resultMap",resultMap);
+	}
+
+	/**
+	 * 当前行情
+	 * @param trd_account
+	 * @return
+	 */
+	@RequestMapping(value="userinfo",method={RequestMethod.POST})
+	@ResponseBody
+	public Map<String,Object> userinfo(String trd_account){
+		try {
+			FutureClient_base client = OkClientFactory.getFutureClient(trd_account);
+			String res = client.future_userinfo_4fix();
+			System.out.println("用户信息-->"+res);
+			JSONObject res_json = JSONObject.fromObject(res);
+			String curr_tm = DateUtil.getCurrentTimeString();
+			res_json.put("curr_tm", curr_tm);
+			resultMap.put("status", 200);
+			resultMap.put("message", res_json);
+		} catch (Exception e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "OKEX行情API异常，稍后再试！");
+			LoggerUtils.fmtError(getClass(), e, "账户信息报错。source[%s]", trd_account);
+		}
+		return resultMap;
+	}
 
 	/**
 	 * 当前行情
@@ -56,9 +101,9 @@ public class FutureController extends BaseController {
 	 */
 	@RequestMapping(value="ticker",method={RequestMethod.POST,RequestMethod.GET})
 	@ResponseBody
-	public Map<String,Object> ticker(String symbol){
+	public Map<String,Object> ticker(String symbol,String contractType){
 		try {
-			String res = StockClient_tq.getInstance().ticker(symbol);
+			String res = FutureClient_tq.getInstance().ticker(symbol,contractType);
 			System.out.println("行情-->"+res);
 			JSONObject res_json = JSONObject.fromObject(res);
 			long date = Long.valueOf(res_json.get("date").toString());
@@ -90,16 +135,23 @@ public class FutureController extends BaseController {
 				return resultMap;
 			}
 
-			String res = client.cancel_order(symbol, contractType,order_id);
+			String res = client.cancel_order(symbol, contractType, order_id);
 			System.out.println(order_id + "取消订单-->"+res);//{"result":true,"order_id":"867323062"}
 			JSONObject res_json = JSONObject.fromObject(res);
 			//修改数据库
 			UFuture record = new UFuture();
 			record.setId(trd_id);
-			if(res_json.has("result") && (boolean)res_json.get("result"))
+			if(res_json.has("result") && (boolean)res_json.get("result")) {
 				record.setStatus("CANCEL");
-			if(res_json.has("error_code") && (int)res_json.get("error_code") == 1009)
+			}
+			else if(res_json.has("error_code") && (int)res_json.get("error_code") == 20015) {
 				record.setStatus("NO ORDER");
+			}
+			else{
+				resultMap.put("status", 500);
+				resultMap.put("message", "未处理状态："+res);
+				return resultMap;
+			}
 			futureService.updateFieldById(record);
 			resultMap.put("status", 200);
 			resultMap.put("order_id", order_id);
@@ -119,7 +171,7 @@ public class FutureController extends BaseController {
 	 */
 	@RequestMapping(value="trade",method={RequestMethod.POST})
 	@ResponseBody
-	public Map<String,Object> trd_post(String trd_symbol, String trd_contract_type, String trd_type,  String trd_price, String trd_amount, String trd_accounts){
+	public Map<String,Object> trd_post(String trd_symbol, String trd_contract_type, String trd_price, String trd_amount, String trd_type,  String trd_accounts){
 		System.out.println("----trade----->"+trd_accounts);
 		List res_ls = new ArrayList();
 		try {
@@ -133,9 +185,9 @@ public class FutureController extends BaseController {
 
 				FutureClient_base client = OkClientFactory.getFutureClient(account);
 				if(client == null){
+					errStr += account +"获取实例失败；";
 					continue;
 				}
-
 
 				String res = client.trade(trd_symbol, trd_contract_type, trd_price, trd_amount, trd_type);
 				System.out.println("挂单-->"+res);//{"result":true,"order_id":867353519}
@@ -144,6 +196,7 @@ public class FutureController extends BaseController {
 				UFuture record = new UFuture();
 				record.setSymbol(trd_symbol);
 				record.setType(trd_type);
+				record.setContract_type(trd_contract_type);
 				record.setAmount(trd_amount);
 				record.setPrice(trd_price);
 				record.setAccount(client.getName());

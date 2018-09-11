@@ -124,3 +124,37 @@
         </div>
 	</@shiro.hasAnyRoles>
 </#macro>
+
+<#macro userinfo index>
+	<@shiro.hasAnyRoles name='888888'>
+		<div id="one" class="col-md-2">
+            <ul data-spy="affix" class="nav nav-list nav-tabs nav-stacked bs-docs-sidenav dropdown affix" style="top: 100px; z-index: 100;">
+
+				<@shiro.hasPermission name="/future/index.shtml">
+                 <li class="${(index=="tian")?string('active',' ')}">
+                     <a href="${basePath}/future/userinfoView.shtml?trd_account=tian">
+                         <i class="glyphicon glyphicon-chevron-right"></i>tian
+                     </a>
+                 </li>
+				</@shiro.hasPermission>
+
+				<@shiro.hasPermission name="/future/index.shtml">
+                 <li class="${(index=="guoguo")?string('active',' ')}">
+                     <a href="${basePath}/future/userinfoView.shtml?trd_account=guoguo">
+                         <i class="glyphicon glyphicon-chevron-right"></i>guoguo
+                     </a>
+                 </li>
+				</@shiro.hasPermission>
+
+				<@shiro.hasPermission name="/future/index.shtml">
+                 <li class="${(index=="xianyang")?string('active',' ')}">
+                     <a href="${basePath}/future/userinfoView.shtml?trd_account=xianyang">
+                         <i class="glyphicon glyphicon-chevron-right"></i>xianyang
+                     </a>
+                 </li>
+				</@shiro.hasPermission>
+
+            </ul>
+        </div>
+	</@shiro.hasAnyRoles>
+</#macro>
